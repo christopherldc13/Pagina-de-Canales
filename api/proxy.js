@@ -16,16 +16,15 @@ export default async function handler(req) {
     // Some servers require specific headers to allow fetching
     const fetchHeaders = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': '*/*'
+      'Accept': '*/*',
+      'Referer': urlObj.origin + '/',
+      'Origin': urlObj.origin
     };
 
-    // Inject Referer for specific domains that block requests without it
+    // Override specifically for telemicro just in case
     if (urlObj.hostname.includes('telemicro.com.do')) {
       fetchHeaders['Referer'] = 'https://telemicro.com.do/';
       fetchHeaders['Origin'] = 'https://telemicro.com.do';
-    } else {
-      // Default referer fallback
-      fetchHeaders['Referer'] = urlObj.origin + '/';
     }
 
     const response = await fetch(targetUrl, {
