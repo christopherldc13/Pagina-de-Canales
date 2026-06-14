@@ -1,5 +1,6 @@
 export const config = {
-  runtime: 'edge',
+  // Use nodejs instead of edge to reduce IP rotation which breaks nimblesessionid
+  runtime: 'nodejs',
 };
 
 export default async function handler(req) {
