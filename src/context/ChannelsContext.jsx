@@ -61,9 +61,16 @@ export function ChannelsProvider({ children }) {
       const enriched = Array.from(grouped.values()).map(ch => {
         const key = nameKey(ch.name)
         const extras = EXTRA_STREAMS[key] || []
-        if (!extras.length) return ch
-        const merged = [...extras, ...ch.urls.filter(u => !extras.includes(u))]
-        return { ...ch, url: merged[0], urls: merged }
+        
+        let merged = ch.urls
+        if (extras.length > 0) {
+          merged = [...extras, ...ch.urls.filter(u => !extras.includes(u))]
+        }
+
+        // Apply Vercel proxy to all stream URLs to bypass CORS and Mixed Content
+        const proxiedUrls = merged.map(u => `/api/proxy?url=${encodeURIComponent(u)}`)
+        
+        return { ...ch, url: proxiedUrls[0], urls: proxiedUrls, originalUrls: merged }
       })
 
       setChannels(enriched)
