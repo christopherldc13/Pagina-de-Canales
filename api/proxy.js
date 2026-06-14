@@ -11,15 +11,32 @@ export default async function handler(req) {
   }
 
   try {
+    const urlObj = new URL(targetUrl);
+    
+    // Some servers require specific headers to allow fetching
+    const fetchHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': '*/*'
+    };
+
+    // Inject Referer for specific domains that block requests without it
+    if (urlObj.hostname.includes('telemicro.com.do')) {
+      fetchHeaders['Referer'] = 'https://telemicro.com.do/';
+      fetchHeaders['Origin'] = 'https://telemicro.com.do';
+    } else {
+      // Default referer fallback
+      fetchHeaders['Referer'] = urlObj.origin + '/';
+    }
+
     const response = await fetch(targetUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': '*/*'
-      }
+      headers: fetchHeaders
     });
 
     if (!response.ok) {
-      return new Response(`Error: ${response.status}`, { status: response.status });
+      return new Response(`Error from source: ${response.status}`, { 
+        status: response.status === 403 ? 403 : 502,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      });
     }
 
     const headers = new Headers(response.headers);
